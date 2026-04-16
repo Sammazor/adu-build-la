@@ -1,0 +1,417 @@
+// prisma/schema.prisma — Phase 1
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  super_admin
+  admin
+  editor
+  viewer
+}
+
+enum ContentStatus {
+  draft
+  review
+  scheduled
+  published
+  archived
+}
+
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  proposal
+  won
+  lost
+  nurture
+  disqualified
+}
+
+enum LeadPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum ServiceInterest {
+  design
+  build
+  design_build
+  consulting
+  unknown
+}
+
+enum AduTypeInterest {
+  detached
+  attached
+  garage
+  junior
+  rooftop
+  unsure
+}
+
+enum LeadTimeline {
+  asap
+  three_months
+  six_months
+  one_year
+  exploring
+}
+
+enum BudgetRange {
+  under_150k
+  range_150_200k
+  range_200_300k
+  over_300k
+  unknown
+}
+
+enum ContactMethod {
+  phone
+  email
+  text
+  any
+}
+
+enum DeviceType {
+  mobile
+  tablet
+  desktop
+  unknown
+}
+
+enum LeadSourceType {
+  organic
+  paid_search
+  paid_social
+  referral
+  direct
+  social
+  email
+  other
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USERS — admin accounts only; no relation to posts (posts use Author)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         UserRole  @default(editor)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  uploadedMedia Media[]
+
+  @@map("users")
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA — uploaded images with rich metadata for SEO and CMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Media {
+  id           String   @id @default(uuid())
+  filename     String
+  originalName String   @map("original_name")
+  url          String
+
+  // Content metadata
+  title       String?  // Human-readable title for library
+  altText     String   @default("") @map("alt_text")
+  caption     String?  @db.Text
+  description String?  @db.Text
+
+  // SEO
+  seoTitle    String?  @map("seo_title")
+
+  // Dimensions & file info
+  width        Int?
+  height       Int?
+  sizeBytes    Int?     @map("size_bytes")
+  mimeType     String?  @map("mime_type")
+
+  // Location / geo metadata (stored in CMS, not EXIF)
+  locationLabel String?  @map("location_label") // e.g. "Culver City Backyard ADU"
+  locationCity  String?  @map("location_city")
+  locationState String?  @map("location_state")
+  locationZip   String?  @map("location_zip")
+  latitude      Decimal? @db.Decimal(10, 7)
+  longitude     Decimal? @db.Decimal(10, 7)
+
+  uploadedById String   @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@map("media")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTHORS — content persona shown publicly; separate from admin users
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Author {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  bio       String?  @db.Text
+  title     String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  posts Post[]
+
+  @@map("authors")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SITE SETTINGS — singleton row; one record always exists
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SiteSettings {
+  id                     String   @id @default(uuid())
+  siteName               String   @default("ADU Build LA") @map("site_name")
+  siteUrl                String   @default("https://adubuildla.com") @map("site_url")
+  defaultOgImageUrl      String?  @map("default_og_image_url")
+  googleSiteVerification String?  @map("google_site_verification")
+  analyticsId            String?  @map("analytics_id")
+  robotsTxtOverride      String?  @map("robots_txt_override")
+  noindexSite            Boolean  @default(false) @map("noindex_site")
+
+  // LocalBusiness JSON-LD fields
+  businessPhone    String? @map("business_phone")
+  businessEmail    String? @map("business_email")
+  businessAddress  String? @map("business_address")
+  businessCity     String? @default("Los Angeles") @map("business_city")
+  businessState    String? @default("CA") @map("business_state")
+  businessZip      String? @map("business_zip")
+  businessHours    String? @map("business_hours")
+  priceRange       String? @default("$$$") @map("price_range")
+  serviceAreaText  String? @map("service_area_text")
+
+  // Hero background media
+  heroMediaType    String  @default("none") @map("hero_media_type") // "none" | "image" | "video"
+  heroMediaUrl     String? @map("hero_media_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SERVICE PAGES — seeded and read-only in Phase 1
+// sections JSONB holds: [IntroSection, CtaSection]
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ServicePage {
+  id               String        @id @default(uuid())
+  name             String
+  slug             String        @unique
+  fullPath         String        @map("full_path")
+  serviceCode      String        @unique @map("service_code")
+  shortDescription String?       @map("short_description") @db.Text
+  iconName         String?       @map("icon_name")
+  heroImageUrl     String?       @map("hero_image_url")
+  status           ContentStatus @default(published)
+  sections         Json          @default("[]")
+
+  // SEO fields
+  seoTitle       String?  @map("seo_title") @db.VarChar(70)
+  seoDescription String?  @map("seo_description") @db.VarChar(165)
+  canonicalUrl   String?  @map("canonical_url")
+  ogTitle        String?  @map("og_title")
+  ogDescription  String?  @map("og_description")
+  ogImageUrl     String?  @map("og_image_url")
+  indexPage      Boolean  @default(true) @map("index_page")
+  primaryKeyword String?  @map("primary_keyword")
+
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("service_pages")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POSTS — blog articles; full CRUD via admin in Phase 1
+// sections JSONB holds exactly one RichTextSection in Phase 1
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Post {
+  id               String        @id @default(uuid())
+  title            String        @db.VarChar(255)
+  slug             String        @unique @db.VarChar(255)
+  fullPath         String        @map("full_path")
+  excerpt          String?       @db.VarChar(500)
+  featuredImageUrl String?       @map("featured_image_url")
+  status           ContentStatus @default(draft)
+  authorId         String        @map("author_id")
+
+  // Phase 1: always one element: [{ type: "rich_text", content: "..." }]
+  sections Json @default("[]")
+
+  wordCount          Int @default(0) @map("word_count")
+  readingTimeMinutes Int @default(0) @map("reading_time_minutes")
+
+  // SEO fields
+  seoTitle          String?  @map("seo_title") @db.VarChar(70)
+  seoDescription    String?  @map("seo_description") @db.VarChar(165)
+  canonicalUrl      String?  @map("canonical_url")
+  ogTitle           String?  @map("og_title")
+  ogDescription     String?  @map("og_description")
+  ogImageUrl        String?  @map("og_image_url")
+  indexPage         Boolean  @default(true) @map("index_page")
+  primaryKeyword    String?  @map("primary_keyword")
+  secondaryKeywords String[] @default([]) @map("secondary_keywords")
+
+  // Publishing
+  publishedAt DateTime? @map("published_at")
+  scheduledAt DateTime? @map("scheduled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  author Author @relation(fields: [authorId], references: [id])
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([slug])
+  @@map("posts")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CMS PAGES — standalone SEO pages managed entirely from the admin UI
+// sections JSONB holds an ordered array of Section objects (hero, intro, rich_text, cta, faq_list)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Page {
+  id    String @id @default(uuid())
+  title String @db.VarChar(255)
+  slug  String @unique @db.VarChar(255)
+
+  // Hero
+  heroHeading          String?  @map("hero_heading") @db.VarChar(255)
+  heroSubheading       String?  @map("hero_subheading") @db.VarChar(500)
+  heroCtaPrimaryLabel  String?  @map("hero_cta_primary_label") @db.VarChar(100)
+  heroCtaPrimaryUrl    String?  @map("hero_cta_primary_url") @db.VarChar(500)
+  heroCtaSecondaryLabel String? @map("hero_cta_secondary_label") @db.VarChar(100)
+  heroCtaSecondaryUrl  String?  @map("hero_cta_secondary_url") @db.VarChar(500)
+  heroImageUrl         String?  @map("hero_image_url")
+
+  // Body sections (ordered array of Section objects)
+  sections Json @default("[]")
+
+  // Status & publishing
+  status      ContentStatus @default(draft)
+  publishedAt DateTime?     @map("published_at")
+
+  // SEO
+  seoTitle       String?  @map("seo_title") @db.VarChar(70)
+  seoDescription String?  @map("seo_description") @db.VarChar(165)
+  canonicalUrl   String?  @map("canonical_url")
+  ogTitle        String?  @map("og_title")
+  ogDescription  String?  @map("og_description")
+  ogImageUrl     String?  @map("og_image_url")
+  indexPage      Boolean  @default(true) @map("index_page")
+  primaryKeyword String?  @map("primary_keyword")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([slug])
+  @@map("pages")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEAD SOURCES
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LeadSource {
+  id         String         @id @default(uuid())
+  name       String
+  sourceType LeadSourceType @map("source_type")
+  pagePath   String?        @map("page_path")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  leads Lead[]
+
+  @@map("lead_sources")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEADS — CRM core; written by public lead forms
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id String @id @default(uuid())
+
+  // Contact
+  firstName              String        @map("first_name") @db.VarChar(100)
+  lastName               String        @map("last_name") @db.VarChar(100)
+  email                  String        @db.VarChar(255)
+  phone                  String?       @db.VarChar(30)
+  preferredContactMethod ContactMethod? @map("preferred_contact_method")
+
+  // Property
+  propertyCity    String? @map("property_city") @db.VarChar(100)
+  propertyZip     String? @map("property_zip") @db.VarChar(10)
+  propertyAddress String? @map("property_address") @db.VarChar(500)
+
+  // Project intent
+  serviceInterest ServiceInterest? @map("service_interest")
+  aduTypeInterest AduTypeInterest? @map("adu_type_interest")
+  timeline        LeadTimeline?
+  budgetRange     BudgetRange?     @map("budget_range")
+  notes           String?          @db.Text
+
+  // Pipeline
+  status       LeadStatus   @default(new)
+  priority     LeadPriority @default(medium)
+  isSpam       Boolean      @default(false) @map("is_spam")
+  doNotContact Boolean      @default(false) @map("do_not_contact")
+
+  // Attribution
+  sourceId      String?  @map("source_id")
+  sourcePageUrl String?  @map("source_page_url") @db.VarChar(1000)
+  landingPage   String?  @map("landing_page") @db.VarChar(1000)
+  referrerUrl   String?  @map("referrer_url") @db.VarChar(1000)
+  utmSource     String?  @map("utm_source") @db.VarChar(100)
+  utmMedium     String?  @map("utm_medium") @db.VarChar(100)
+  utmCampaign   String?  @map("utm_campaign") @db.VarChar(100)
+  utmTerm       String?  @map("utm_term") @db.VarChar(100)
+  utmContent    String?  @map("utm_content") @db.VarChar(100)
+  gclid         String?  @db.VarChar(255)
+  fbclid        String?  @db.VarChar(255)
+  deviceType    DeviceType? @default(unknown) @map("device_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  source LeadSource? @relation(fields: [sourceId], references: [id])
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@index([createdAt(sort: Desc)])
+  @@map("leads")
+}

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; print\\('\\\\n'.join\\(f'{k}: {v}' for k,v in sorted\\(deps.items\\(\\)\\)\\)\\)\")",
+      "Bash(grep -l \"requireAdmin\" src/lib/actions/*.ts)",
+      "Bash(grep -c \"requireAdmin\" src/lib/actions/*.ts)",
+      "Bash(grep -n \"export\" src/lib/security/*.ts)",
+      "Bash(head -120 src/app/\\\\\\(public\\\\\\)/services/page.tsx)",
+      "Bash(head -80 src/app/\\\\\\(public\\\\\\)/locations/page.tsx)",
+      "Bash(head -100 src/app/\\\\\\(public\\\\\\)/blog/page.tsx)",
+      "Bash(head -60 src/app/\\\\\\(public\\\\\\)/contact/page.tsx)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\user\\Desktop\\Website ADU\\src\\app\\(admin)\\admin\\services",
+      "c:\\Users\\user\\Desktop\\Website ADU\\src\\app\\(admin)\\admin\\pages",
+      "c:\\Users\\user\\Desktop\\Website ADU\\src\\app\\(public)"
+    ]
+  }
+}
