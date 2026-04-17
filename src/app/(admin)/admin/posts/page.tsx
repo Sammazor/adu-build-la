@@ -6,6 +6,15 @@ import { formatDateShort } from "@/lib/utils/formatters";
 type ContentStatus = "draft" | "review" | "scheduled" | "published" | "archived";
 import { Plus, ExternalLink, AlertCircle } from "lucide-react";
 
+const postsQuery = (filterStatus: ContentStatus | undefined) =>
+  prisma.post.findMany({
+    where: filterStatus ? { status: filterStatus } : undefined,
+    orderBy: { updatedAt: "desc" },
+    include: { author: true },
+  });
+
+type PostItem = Awaited<ReturnType<typeof postsQuery>>[number];
+
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "published", label: "Published" },
@@ -40,16 +49,12 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const { status } = await searchParams;
   const filterStatus = status && status !== "all" ? status : undefined;
 
-  const posts = await prisma.post.findMany({
-    where: filterStatus ? { status: filterStatus as ContentStatus } : undefined,
-    orderBy: { updatedAt: "desc" },
-    include: { author: true },
-  });
+  const posts: PostItem[] = await postsQuery(filterStatus as ContentStatus | undefined);
 
-  const publishedCount = posts.filter((p) => p.status === "published").length;
-  const draftCount = posts.filter((p) => p.status === "draft").length;
-  const reviewCount = posts.filter((p) => p.status === "review").length;
-  const seoIssuesCount = posts.filter((p) => !seoHealth(p).ok).length;
+  const publishedCount = posts.filter((p: PostItem) => p.status === "published").length;
+  const draftCount = posts.filter((p: PostItem) => p.status === "draft").length;
+  const reviewCount = posts.filter((p: PostItem) => p.status === "review").length;
+  const seoIssuesCount = posts.filter((p: PostItem) => !seoHealth(p).ok).length;
 
   return (
     <div>
@@ -135,7 +140,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {posts.map((post) => {
+                {posts.map((post: PostItem) => {
                   const health = seoHealth(post);
                   return (
                     <tr

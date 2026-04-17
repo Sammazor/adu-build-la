@@ -6,6 +6,14 @@ import { StatusBadge } from "@/components/admin/ui/StatusBadge";
 import { formatRelativeTime, formatDateShort } from "@/lib/utils/formatters";
 import { Users, FileText, TrendingUp, Inbox } from "lucide-react";
 
+const recentLeadsQuery = () =>
+  prisma.lead.findMany({ take: 10, orderBy: { createdAt: "desc" }, include: { source: true } });
+const recentPostsQuery = () =>
+  prisma.post.findMany({ take: 5, orderBy: { updatedAt: "desc" }, include: { author: true } });
+
+type RecentLead = Awaited<ReturnType<typeof recentLeadsQuery>>[number];
+type RecentPost = Awaited<ReturnType<typeof recentPostsQuery>>[number];
+
 async function getDashboardData() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -24,19 +32,11 @@ async function getDashboardData() {
     prisma.lead.count({ where: { createdAt: { gte: weekStart } } }),
     prisma.post.count({ where: { status: "published" } }),
     prisma.post.count({ where: { status: "draft" } }),
-    prisma.lead.findMany({
-      take: 10,
-      orderBy: { createdAt: "desc" },
-      include: { source: true },
-    }),
-    prisma.post.findMany({
-      take: 5,
-      orderBy: { updatedAt: "desc" },
-      include: { author: true },
-    }),
+    recentLeadsQuery(),
+    recentPostsQuery(),
   ]);
 
-  return { leadsToday, leadsThisWeek, postsPublished, postsDraft, recentLeads, recentPosts };
+  return { leadsToday, leadsThisWeek, postsPublished, postsDraft, recentLeads: recentLeads as RecentLead[], recentPosts: recentPosts as RecentPost[] };
 }
 
 export default async function AdminDashboard() {
@@ -85,7 +85,7 @@ export default async function AdminDashboard() {
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {recentLeads.map((lead) => (
+              {recentLeads.map((lead: RecentLead) => (
                 <Link
                   key={lead.id}
                   href={`/admin/leads/${lead.id}`}
@@ -126,7 +126,7 @@ export default async function AdminDashboard() {
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {recentPosts.map((post) => (
+              {recentPosts.map((post: RecentPost) => (
                 <Link
                   key={post.id}
                   href={`/admin/posts/${post.id}`}

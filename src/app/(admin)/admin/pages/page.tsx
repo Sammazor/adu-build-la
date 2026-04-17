@@ -4,10 +4,13 @@ import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { StatusBadge } from "@/components/admin/ui/StatusBadge";
 import { ExternalLink, FilePlus, FileText } from "lucide-react";
 
+const pagesQuery = () =>
+  prisma.page.findMany({ orderBy: { updatedAt: "desc" } });
+
+type PageItem = Awaited<ReturnType<typeof pagesQuery>>[number];
+
 export default async function PagesAdminPage() {
-  const pages = await prisma.page.findMany({
-    orderBy: { updatedAt: "desc" },
-  });
+  const pages: PageItem[] = await pagesQuery();
 
   return (
     <div>
@@ -58,7 +61,7 @@ export default async function PagesAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {pages.map((page) => {
+              {pages.map((page: PageItem) => {
                 const sectionCount = Array.isArray(page.sections) ? page.sections.length : 0;
                 return (
                   <tr key={page.id} className="hover:bg-gray-50 transition-colors">

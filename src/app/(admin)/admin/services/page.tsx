@@ -4,10 +4,13 @@ import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { StatusBadge } from "@/components/admin/ui/StatusBadge";
 import { ExternalLink, FileText } from "lucide-react";
 
+const servicesQuery = () =>
+  prisma.servicePage.findMany({ orderBy: { createdAt: "asc" } });
+
+type ServiceItem = Awaited<ReturnType<typeof servicesQuery>>[number];
+
 export default async function ServicesPage() {
-  const services = await prisma.servicePage.findMany({
-    orderBy: { createdAt: "asc" },
-  });
+  const services: ServiceItem[] = await servicesQuery();
 
   return (
     <div>
@@ -34,7 +37,7 @@ export default async function ServicesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {services.map((service) => (
+              {services.map((service: ServiceItem) => (
                 <tr key={service.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <Link
