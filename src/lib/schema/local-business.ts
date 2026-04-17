@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@prisma/client";
+import type { SiteSettings } from "@/types/prisma-app";
 
 export function buildLocalBusinessSchema(settings: SiteSettings) {
   const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://adubuildla.com";

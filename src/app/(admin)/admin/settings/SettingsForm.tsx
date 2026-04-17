@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { updateSettings } from "@/lib/actions/settings";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import type { SiteSettings } from "@prisma/client";
+import type { SiteSettings } from "@/types/prisma-app";
 
 const initialState = { success: false, errors: undefined, message: undefined };
 

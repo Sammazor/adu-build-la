@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { updateService, type ServiceActionState } from "@/lib/actions/services";
 import { SeoPanel } from "@/components/admin/seo/SeoPanel";
 import { Loader2, CheckCircle2, ExternalLink } from "lucide-react";
-import type { ServicePage } from "@prisma/client";
+import type { ServicePage } from "@/types/prisma-app";
 
 const initialState: ServiceActionState = { success: false };
 

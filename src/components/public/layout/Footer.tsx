@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Building2, Phone, MapPin, Mail, ArrowRight, Shield, Clock, Star } from "lucide-react";
-import type { SiteSettings } from "@prisma/client";
+import type { SiteSettings } from "@/types/prisma-app";
 
 interface FooterProps {
   settings?: SiteSettings | null;

@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { updateMediaMetadata, type MediaActionState } from "@/lib/actions/media";
 import { Loader2, CheckCircle2, MapPin } from "lucide-react";
-import type { Media } from "@prisma/client";
+import type { Media } from "@/types/prisma-app";
 
 const initialState: MediaActionState = { success: false };
 

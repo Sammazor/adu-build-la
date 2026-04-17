@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { createAuthor, updateAuthor, type AuthorActionState } from "@/lib/actions/authors";
 import { Loader2, CheckCircle2, User } from "lucide-react";
-import type { Author } from "@prisma/client";
+import type { Author } from "@/types/prisma-app";
 
 const initialState: AuthorActionState = { success: false };
 

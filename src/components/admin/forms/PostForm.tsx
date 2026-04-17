@@ -20,10 +20,10 @@ import {
   Search,
   BookOpen,
 } from "lucide-react";
-import type { Post, Author } from "@prisma/client";
+import type { PostPlain, Author } from "@/types/prisma-app";
 
 interface PostFormProps {
-  post?: Post & { author: Author };
+  post?: PostPlain & { author: Author };
   authors: Author[];
 }
 

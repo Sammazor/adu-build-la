@@ -14,7 +14,7 @@ import {
   ExternalLink,
   GripVertical,
 } from "lucide-react";
-import type { Page } from "@prisma/client";
+import type { Page } from "@/types/prisma-app";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

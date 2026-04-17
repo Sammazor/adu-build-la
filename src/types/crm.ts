@@ -1,5 +1,5 @@
 // src/types/crm.ts
-import type { Lead, LeadSource } from "@prisma/client";
+import type { Lead, LeadSource } from "./prisma-app";
 
 export type LeadWithSource = Lead & { source: LeadSource | null };
 
@@ -42,3 +42,4 @@ export interface LeadFormData {
 }
 
 export type { Lead, LeadSource };
+
