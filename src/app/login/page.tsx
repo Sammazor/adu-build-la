@@ -37,14 +37,18 @@ function LoginForm() {
         email,
         password,
         redirect: false,
+        callbackUrl,
       });
 
-      if (result?.error) {
+      if (!result || result.error) {
         setError("Invalid email or password. Please try again.");
-      } else {
-        router.push(callbackUrl);
-        router.refresh();
+        return;
       }
+
+      // Hard navigation so the browser sends the newly-set session cookie
+      // on the next request. router.push() is a soft navigation and the
+      // middleware won't see the cookie until the next full page load.
+      window.location.href = result.url ?? callbackUrl;
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
