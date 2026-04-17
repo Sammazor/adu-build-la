@@ -12,7 +12,7 @@ const authorsQuery = () =>
 type AuthorWithCount = Awaited<ReturnType<typeof authorsQuery>>[number];
 
 export default async function AuthorsPage() {
-  const authors = await authorsQuery();
+  const authors: AuthorWithCount[] = await authorsQuery();
 
   return (
     <div>
@@ -54,7 +54,7 @@ export default async function AuthorsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {authors.map((author) => (
+              {authors.map((author: AuthorWithCount) => (
                 <tr key={author.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <Link
