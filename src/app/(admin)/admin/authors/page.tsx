@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { type Prisma } from "@prisma/client";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { Plus, User, FileText } from "lucide-react";
 
-type AuthorWithCount = Prisma.AuthorGetPayload<{
-  include: { _count: { select: { posts: true } } };
-}>;
-
-export default async function AuthorsPage() {
-  const authors: AuthorWithCount[] = await prisma.author.findMany({
+const authorsQuery = () =>
+  prisma.author.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { posts: true } } },
   });
+
+type AuthorWithCount = Awaited<ReturnType<typeof authorsQuery>>[number];
+
+export default async function AuthorsPage() {
+  const authors = await authorsQuery();
 
   return (
     <div>
