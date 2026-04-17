@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
+import type { PublishedService } from "@/lib/data/settings";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { CheckCircle2, ArrowRight, Star, Shield, Users, Clock } from "lucide-react";
@@ -16,12 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ServicesPage() {
-  const services = await prisma.servicePage
+  const services: PublishedService[] = await prisma.servicePage
     .findMany({
       where: { status: "published" },
       orderBy: { createdAt: "asc" },
     })
-    .catch(() => []);
+    .catch(() => [] as PublishedService[]);
 
   const trustItems = [
     { Icon: Star, label: "4.9 / 5 Rating", sub: "Google Reviews" },

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { getSiteSettings, getPublishedServices } from "@/lib/data/settings";
+import { getSiteSettings, getPublishedServices, type PublishedService } from "@/lib/data/settings";
 import { buildArticleMetadata } from "@/lib/seo/metadata";
 import { buildArticleSchema } from "@/lib/schema/article";
 import { buildBreadcrumbSchema } from "@/lib/schema/breadcrumb";
@@ -88,7 +88,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     relatedPostsQuery(slug).catch(() => [] as RelatedPostItem[]),
     getPublishedServices(),
   ]);
-  const services = allServices.slice(0, 4);
+  const services: PublishedService[] = allServices.slice(0, 4);
 
   if (!post || post.status !== "published") notFound();
 
@@ -134,7 +134,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // ── Related links for cross-navigation ───────────────────────────────────
   const locations = getAllLocations();
   const relatedLinkItems = [
-    ...services.map((s) => ({
+    ...services.map((s: PublishedService) => ({
       href: s.fullPath,
       typeLabel: "Service",
       title: s.name,
@@ -366,7 +366,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     Our Services
                   </div>
                   <ul className="space-y-2">
-                    {services.map((s) => (
+                    {services.map((s: PublishedService) => (
                       <li key={s.id}>
                         <Link
                           href={s.fullPath}

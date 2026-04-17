@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getSiteSettings, getPublishedServices } from "@/lib/data/settings";
+import { getSiteSettings, getPublishedServices, type PublishedService } from "@/lib/data/settings";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/schema/breadcrumb";
 import { buildFaqSchema } from "@/lib/schema/faq";
@@ -98,7 +98,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
     getPublishedServices(),
   ]);
   // Exclude current service from the related list (already in cache — no extra query)
-  const relatedServices = allServices.filter((s) => s.slug !== slug).slice(0, 3);
+  const relatedServices: PublishedService[] = allServices.filter((s: PublishedService) => s.slug !== slug).slice(0, 3);
 
   if (!service || service.status !== "published") notFound();
 
@@ -414,7 +414,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {relatedServices.map((s) => (
+              {relatedServices.map((s: PublishedService) => (
                 <ServiceCard
                   key={s.id}
                   name={s.name}

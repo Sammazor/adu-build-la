@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublishedServices } from "@/lib/data/settings";
+import { getPublishedServices, type PublishedService } from "@/lib/data/settings";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/schema/breadcrumb";
 import { buildFaqSchema } from "@/lib/schema/faq";
@@ -56,7 +56,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
 
-  const relatedServices = (await getPublishedServices()).slice(0, 3);
+  const relatedServices: PublishedService[] = (await getPublishedServices()).slice(0, 3);
 
   const breadcrumbSchema = buildBreadcrumbSchema(
     [
@@ -589,7 +589,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {relatedServices.map((s) => (
+              {relatedServices.map((s: PublishedService) => (
                 <ServiceCard
                   key={s.id}
                   name={s.name}

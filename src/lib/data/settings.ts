@@ -16,6 +16,10 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
+const _publishedServicesQuery = () =>
+  prisma.servicePage.findMany({ where: { status: "published" }, orderBy: { createdAt: "asc" } });
+export type PublishedService = Awaited<ReturnType<typeof _publishedServicesQuery>>[number];
+
 /**
  * Fetches the single SiteSettings row.
  * Deduplicated across layout + page for every route.
@@ -29,11 +33,11 @@ export const getSiteSettings = cache(async () => {
  * Used in sidebars, nav, and related-links sections across many routes.
  * Deduplicated — each unique call site within one render gets the cached result.
  */
-export const getPublishedServices = cache(async () => {
+export const getPublishedServices = cache(async (): Promise<PublishedService[]> => {
   return prisma.servicePage
     .findMany({
       where: { status: "published" },
       orderBy: { createdAt: "asc" },
     })
-    .catch(() => []);
+    .catch(() => [] as PublishedService[]);
 });
