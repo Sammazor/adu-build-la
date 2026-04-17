@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { LeadStatusBadge } from "@/components/admin/ui/LeadStatusBadge";
 import { formatRelativeTime } from "@/lib/utils/formatters";
-import type { LeadStatus } from "@prisma/client";
+type LeadStatus = "new" | "contacted" | "qualified" | "proposal" | "won" | "lost" | "nurture" | "disqualified";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Leads" },

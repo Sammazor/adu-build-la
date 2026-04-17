@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { StatusBadge } from "@/components/admin/ui/StatusBadge";
 import { formatDateShort } from "@/lib/utils/formatters";
-import type { ContentStatus } from "@prisma/client";
+type ContentStatus = "draft" | "review" | "scheduled" | "published" | "archived";
 import { Plus, ExternalLink, AlertCircle } from "lucide-react";
 
 const STATUS_OPTIONS = [
