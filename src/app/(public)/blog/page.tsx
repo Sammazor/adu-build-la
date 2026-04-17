@@ -26,17 +26,20 @@ const TOPIC_LINKS = [
   { label: "Completed Projects", href: "/projects" },
 ];
 
-export default async function BlogIndexPage() {
-  const posts = await prisma.post
-    .findMany({
-      where: { status: "published" },
-      orderBy: { publishedAt: "desc" },
-      take: 24,
-      include: { author: true },
-    })
-    .catch(() => []);
+const blogPostsQuery = () =>
+  prisma.post.findMany({
+    where: { status: "published" },
+    orderBy: { publishedAt: "desc" },
+    take: 24,
+    include: { author: true },
+  });
 
-  const [featured, ...rest] = posts;
+type BlogPostItem = Awaited<ReturnType<typeof blogPostsQuery>>[number];
+
+export default async function BlogIndexPage() {
+  const posts: BlogPostItem[] = await blogPostsQuery().catch(() => [] as BlogPostItem[]);
+
+  const [featured, ...rest]: BlogPostItem[] = posts;
 
   return (
     <>
@@ -212,7 +215,7 @@ export default async function BlogIndexPage() {
                   More Articles
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {rest.map((post) => (
+                  {rest.map((post: BlogPostItem) => (
                     <PostCard
                       key={post.id}
                       title={post.title}

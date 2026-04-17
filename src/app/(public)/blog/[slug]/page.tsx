@@ -35,13 +35,25 @@ const getPost = cache(async (slug: string) => {
   return prisma.post.findUnique({ where: { slug }, include: { author: true } });
 });
 
+const relatedPostsQuery = (slug: string) =>
+  prisma.post.findMany({
+    where: { status: "published", NOT: { slug } },
+    orderBy: { publishedAt: "desc" },
+    take: 3,
+    include: { author: true },
+  });
+
+type RelatedPostItem = Awaited<ReturnType<typeof relatedPostsQuery>>[number];
+
+const blogSlugsQuery = () =>
+  prisma.post.findMany({ where: { status: "published" }, select: { slug: true } });
+
+type BlogSlugItem = Awaited<ReturnType<typeof blogSlugsQuery>>[number];
+
 export async function generateStaticParams() {
   try {
-    const posts = await prisma.post.findMany({
-      where: { status: "published" },
-      select: { slug: true },
-    });
-    return posts.map((p) => ({ slug: p.slug }));
+    const posts: BlogSlugItem[] = await blogSlugsQuery();
+    return posts.map((p: BlogSlugItem) => ({ slug: p.slug }));
   } catch {
     return [];
   }
@@ -73,14 +85,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const [post, settings, relatedPosts, allServices] = await Promise.all([
     getPost(slug),
     getSiteSettings(),
-    prisma.post
-      .findMany({
-        where: { status: "published", NOT: { slug } },
-        orderBy: { publishedAt: "desc" },
-        take: 3,
-        include: { author: true },
-      })
-      .catch(() => []),
+    relatedPostsQuery(slug).catch(() => [] as RelatedPostItem[]),
     getPublishedServices(),
   ]);
   const services = allServices.slice(0, 4);
@@ -515,7 +520,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedPosts.map((p) => (
+              {(relatedPosts as RelatedPostItem[]).map((p: RelatedPostItem) => (
                 <PostCard
                   key={p.id}
                   title={p.title}

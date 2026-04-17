@@ -58,13 +58,15 @@ const serviceIconMap: Record<string, ElementType> = {
   layers: Layers,
 };
 
+const serviceSlugsQuery = () =>
+  prisma.servicePage.findMany({ where: { status: "published" }, select: { slug: true } });
+
+type ServiceSlugItem = Awaited<ReturnType<typeof serviceSlugsQuery>>[number];
+
 export async function generateStaticParams() {
   try {
-    const services = await prisma.servicePage.findMany({
-      where: { status: "published" },
-      select: { slug: true },
-    });
-    return services.map((s) => ({ slug: s.slug }));
+    const services: ServiceSlugItem[] = await serviceSlugsQuery();
+    return services.map((s: ServiceSlugItem) => ({ slug: s.slug }));
   } catch {
     return [];
   }
