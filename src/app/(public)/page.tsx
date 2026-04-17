@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSiteSettings, getPublishedServices } from "@/lib/data/settings";
+import { getSiteSettings, getPublishedServices, type PublishedService } from "@/lib/data/settings";
 import { HeroSection } from "@/components/public/sections/HeroSection";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [services, settings] = await Promise.all([
+  const [services, settings]: [PublishedService[], Awaited<ReturnType<typeof getSiteSettings>>] = await Promise.all([
     getPublishedServices(),
     getSiteSettings(),
   ]);
@@ -209,7 +209,7 @@ export default async function HomePage() {
 
           {services.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {services.map((service) => (
+              {services.map((service: PublishedService) => (
                 <ServiceCard
                   key={service.id}
                   name={service.name}
