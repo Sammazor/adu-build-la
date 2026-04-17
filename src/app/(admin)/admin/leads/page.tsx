@@ -5,6 +5,16 @@ import { LeadStatusBadge } from "@/components/admin/ui/LeadStatusBadge";
 import { formatRelativeTime } from "@/lib/utils/formatters";
 type LeadStatus = "new" | "contacted" | "qualified" | "proposal" | "won" | "lost" | "nurture" | "disqualified";
 
+const leadsQuery = (filterStatus: LeadStatus | undefined) =>
+  prisma.lead.findMany({
+    where: filterStatus ? { status: filterStatus } : undefined,
+    orderBy: { createdAt: "desc" },
+    take: 100,
+    include: { source: true },
+  });
+
+type LeadItem = Awaited<ReturnType<typeof leadsQuery>>[number];
+
 const STATUS_OPTIONS = [
   { value: "all", label: "All Leads" },
   { value: "new", label: "New" },
@@ -32,12 +42,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   const { status } = await searchParams;
   const filterStatus = status && status !== "all" ? status : undefined;
 
-  const leads = await prisma.lead.findMany({
-    where: filterStatus ? { status: filterStatus as LeadStatus } : undefined,
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: { source: true },
-  });
+  const leads: LeadItem[] = await leadsQuery(filterStatus as LeadStatus | undefined);
 
   return (
     <div>
@@ -99,7 +104,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {leads.map((lead) => (
+                {leads.map((lead: LeadItem) => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <Link
