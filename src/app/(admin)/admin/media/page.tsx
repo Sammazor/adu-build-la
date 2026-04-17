@@ -6,15 +6,20 @@ import { ImageUploader } from "@/components/admin/media/ImageUploader";
 import { formatBytes, formatDateShort } from "@/lib/utils/formatters";
 import { Plus, ImageIcon, MapPin, AlertCircle } from "lucide-react";
 
-export default async function MediaLibraryPage() {
-  const media = await prisma.media.findMany({
+const mediaQuery = () =>
+  prisma.media.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
     include: { uploadedBy: { select: { name: true } } },
   });
 
-  const totalBytes = media.reduce((sum, m) => sum + (m.sizeBytes ?? 0), 0);
-  const missingAlt = media.filter((m) => !m.altText || m.altText === "").length;
+type MediaItem = Awaited<ReturnType<typeof mediaQuery>>[number];
+
+export default async function MediaLibraryPage() {
+  const media: MediaItem[] = await mediaQuery();
+
+  const totalBytes = media.reduce((sum: number, m: MediaItem) => sum + (m.sizeBytes ?? 0), 0);
+  const missingAlt = media.filter((m: MediaItem) => !m.altText || m.altText === "").length;
 
   return (
     <div>
@@ -45,7 +50,7 @@ export default async function MediaLibraryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {media.map((m) => {
+          {media.map((m: MediaItem) => {
             const hasAlt = m.altText && m.altText !== "";
             const hasGeo = m.locationCity || m.latitude;
             return (
