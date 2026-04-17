@@ -27,13 +27,15 @@ const getPage = cache(async (slug: string) => {
 
 // ── Static params for published pages ────────────────────────────────────────
 
+const slugsQuery = () =>
+  prisma.page.findMany({ where: { status: "published" }, select: { slug: true } });
+
+type PageSlug = Awaited<ReturnType<typeof slugsQuery>>[number];
+
 export async function generateStaticParams() {
   try {
-    const pages = await prisma.page.findMany({
-      where: { status: "published" },
-      select: { slug: true },
-    });
-    return pages.map((p) => ({ slug: p.slug }));
+    const pages: PageSlug[] = await slugsQuery();
+    return pages.map((p: PageSlug) => ({ slug: p.slug }));
   } catch {
     return [];
   }
