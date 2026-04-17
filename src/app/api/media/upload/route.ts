@@ -110,15 +110,24 @@ export async function POST(req: NextRequest) {
     .slice(0, 50) || "upload";           // max 50 chars, fallback
   const filename = `media/${safe}-${timestamp}.${ext}`;
 
+  // Verify Blob token is configured before attempting upload
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error("[media/upload] BLOB_READ_WRITE_TOKEN is not set");
+    return NextResponse.json({ error: "Storage not configured." }, { status: 500 });
+  }
+
   // Upload to Vercel Blob
   let blob: { url: string };
   try {
     blob = await put(filename, file, {
       access: "public",
       contentType: file.type,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
-  } catch {
-    return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+  } catch (err) {
+    console.error("[media/upload] Vercel Blob put() failed:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: `Upload failed: ${message}` }, { status: 500 });
   }
 
   // Persist to media table
@@ -126,7 +135,7 @@ export async function POST(req: NextRequest) {
     const media = await prisma.media.create({
       data: {
         filename,
-        originalName: file.name.slice(0, 255), // truncate just in case
+        originalName: file.name.slice(0, 255),
         url: blob.url,
         altText: "",
         mimeType: file.type,
@@ -141,7 +150,8 @@ export async function POST(req: NextRequest) {
       filename: media.filename,
       originalName: media.originalName,
     });
-  } catch {
+  } catch (err) {
+    console.error("[media/upload] DB create failed:", err);
     return NextResponse.json({ error: "Failed to save file record." }, { status: 500 });
   }
 }
