@@ -65,15 +65,15 @@ export function MobileMenuButton() {
 
   const drawer = (
     <>
-      {/* Backdrop — rendered at body level, always above everything */}
-      <div
-        className={`fixed inset-0 bg-stone-950/50 backdrop-blur-[2px] lg:hidden transition-opacity duration-200 ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        style={{ zIndex: 9998 }}
-        onClick={close}
-        aria-hidden
-      />
+      {/* Backdrop — only in DOM when open; avoids backdrop-blur painting on closed state */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-stone-950/50 backdrop-blur-[2px] lg:hidden transition-opacity duration-200"
+          style={{ zIndex: 9998 }}
+          onClick={close}
+          aria-hidden
+        />
+      )}
 
       {/* Slide-in drawer — rendered at body level */}
       <div
