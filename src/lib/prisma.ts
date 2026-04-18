@@ -3,24 +3,17 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 function createPrismaClient() {
-  // During `next build`, Next.js spawns multiple worker processes for parallel
-  // static page generation. Each worker has its own Node.js module cache and
-  // its own globalThis — the singleton below prevents duplicate clients within
-  // a single worker, but cannot prevent one pool per worker process.
+  // Supabase Transaction mode pooler (port 6543): each query borrows a server
+  // connection for the duration of the transaction then immediately releases it.
+  // This is correct for Vercel serverless — many concurrent function instances,
+  // each holding a connection only while a query runs.
   //
-  // The DATABASE_URL points to Supabase's PgBouncer pooler in Session mode.
-  // Session mode holds a dedicated server connection per client connection for
-  // the lifetime of that connection. With pg.Pool's default max=10 and
-  // Next.js spawning 4–8 workers, this creates 40–80 session connections —
-  // far exceeding the pooler's limit.
-  //
-  // Fix: cap pool max at 2 per worker process. This keeps total connections
-  // well within limits even with many parallel workers (8 workers × 2 = 16).
-  // At runtime (deployed) only one process runs, so this has no runtime cost.
+  // max:1 — each serverless function instance needs at most one connection at a
+  // time. The pooler multiplexes across the real Postgres connection limit.
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 2,
-    idleTimeoutMillis: 10_000,
+    max: 1,
+    idleTimeoutMillis: 5_000,
     connectionTimeoutMillis: 10_000,
   });
   const adapter = new PrismaPg(pool);
