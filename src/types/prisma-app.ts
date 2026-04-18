@@ -40,3 +40,7 @@ export type Lead = NonNullable<Awaited<ReturnType<typeof _leadQuery>>>;
 // ── LeadSource ────────────────────────────────────────────────────────────────
 const _leadSourceQuery = () => prisma.leadSource.findFirst();
 export type LeadSource = NonNullable<Awaited<ReturnType<typeof _leadSourceQuery>>>;
+
+// ── SitePageOverride ──────────────────────────────────────────────────────────
+const _sitePageOverrideQuery = () => prisma.sitePageOverride.findFirst();
+export type SitePageOverride = NonNullable<Awaited<ReturnType<typeof _sitePageOverrideQuery>>>;

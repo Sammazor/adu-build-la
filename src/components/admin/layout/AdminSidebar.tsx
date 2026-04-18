@@ -14,6 +14,7 @@ import {
   UserCircle,
   Globe,
   LayoutTemplate,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,8 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/leads", label: "Leads", icon: Users, exact: false },
   { href: "/admin/posts", label: "Blog Posts", icon: FileText, exact: false },
-  { href: "/admin/pages", label: "Pages", icon: LayoutTemplate, exact: false },
+  { href: "/admin/site-pages", label: "Site Pages", icon: Layers, exact: false },
+  { href: "/admin/pages", label: "CMS Pages", icon: LayoutTemplate, exact: false },
   { href: "/admin/services", label: "Services", icon: Globe, exact: false },
   { href: "/admin/authors", label: "Authors", icon: UserCircle, exact: false },
   { href: "/admin/media", label: "Media Library", icon: ImageIcon, exact: false },

@@ -3,16 +3,23 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import type { PublishedService } from "@/lib/data/settings";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { CheckCircle2, ArrowRight, Star, Shield, Users, Clock } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("services-index");
   return buildMetadata({
-    title: "ADU Services in Los Angeles",
+    title: cms?.seoTitle ?? "ADU Services in Los Angeles",
     description:
+      cms?.seoDescription ??
       "Full-service ADU design, permitting, and construction in Los Angeles. Explore our services and get a free estimate. ADUs starting from $150,000.",
-    canonical: "/services",
+    canonical: cms?.canonicalUrl ?? "/services",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 

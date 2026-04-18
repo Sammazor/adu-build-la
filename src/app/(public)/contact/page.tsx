@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { getSiteSettings } from "@/lib/data/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("contact");
   return buildMetadata({
-    title: "Contact ADU Build LA",
+    title: cms?.seoTitle ?? "Contact ADU Build LA",
     description:
+      cms?.seoDescription ??
       "Contact ADU Build LA for ADU design, permitting, and construction services in Los Angeles. Get a free consultation within 1 business day.",
-    canonical: "/contact",
+    canonical: cms?.canonicalUrl ?? "/contact",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 

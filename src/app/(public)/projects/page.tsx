@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { getAllProjects } from "@/data/projects";
 import { ProjectCard } from "@/components/public/cards/ProjectCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight, Star, Shield, Clock, Users } from "lucide-react";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("projects");
   return buildMetadata({
-    title: "ADU Projects — Portfolio of Completed ADUs",
+    title: cms?.seoTitle ?? "ADU Projects — Portfolio of Completed ADUs",
     description:
+      cms?.seoDescription ??
       "Browse completed ADU projects by ADU Build LA — garage conversions, detached ADUs, Junior ADUs across Los Angeles, Santa Monica, Pasadena, Glendale, and Culver City.",
-    canonical: "/projects",
+    canonical: cms?.canonicalUrl ?? "/projects",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
   const projects = getAllProjects();
 
   const trustItems = [

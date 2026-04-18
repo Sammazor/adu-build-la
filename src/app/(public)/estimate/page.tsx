@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, Star, Shield, Clock, Users } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("estimate");
   return buildMetadata({
-    title: "Request a Free ADU Estimate",
+    title: cms?.seoTitle ?? "Request a Free ADU Estimate",
     description:
+      cms?.seoDescription ??
       "Request a free ADU cost estimate for your Los Angeles property. We'll assess your site and provide a detailed all-inclusive quote within 1 business day.",
-    canonical: "/estimate",
+    canonical: cms?.canonicalUrl ?? "/estimate",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 

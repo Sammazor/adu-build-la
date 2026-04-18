@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSiteSettings, getPublishedServices, type PublishedService } from "@/lib/data/settings";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { HeroSection } from "@/components/public/sections/HeroSection";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
@@ -30,20 +31,26 @@ import {
 } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
+  const [settings, cms] = await Promise.all([getSiteSettings(), getPageOverride("homepage")]);
   return buildMetadata({
-    title: "ADU Design & Build Specialists in Los Angeles",
+    title: cms?.seoTitle ?? "ADU Design & Build Specialists in Los Angeles",
     description:
+      cms?.seoDescription ??
       "Los Angeles ADU contractors. Full-service ADU design, permitting, and construction starting from $150,000. Licensed, insured, 200+ ADUs built across LA County. Free property assessment.",
-    canonical: "/",
+    canonical: cms?.canonicalUrl ?? "/",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
     siteUrl: settings?.siteUrl,
   });
 }
 
 export default async function HomePage() {
-  const [services, settings]: [PublishedService[], Awaited<ReturnType<typeof getSiteSettings>>] = await Promise.all([
+  const [services, settings, cms]: [PublishedService[], Awaited<ReturnType<typeof getSiteSettings>>, Awaited<ReturnType<typeof getPageOverride>>] = await Promise.all([
     getPublishedServices(),
     getSiteSettings(),
+    getPageOverride("homepage"),
   ]);
 
   const featuredProjects = getFeaturedProjects(3);
@@ -155,12 +162,12 @@ export default async function HomePage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <HeroSection
-        heading="Los Angeles ADU Design, Permitting & Construction"
-        subheading="We're an ADU-only contractor — every project we take is an accessory dwelling unit. Full-service design, permitting, and construction under one contract, starting from $150,000."
-        ctaPrimaryLabel="Get a Free Property Assessment"
-        ctaPrimaryUrl="/estimate"
-        ctaSecondaryLabel="See Completed Projects"
-        ctaSecondaryUrl="/projects"
+        heading={cms?.heroHeading ?? "Los Angeles ADU Design, Permitting & Construction"}
+        subheading={cms?.heroSubheading ?? "We're an ADU-only contractor — every project we take is an accessory dwelling unit. Full-service design, permitting, and construction under one contract, starting from $150,000."}
+        ctaPrimaryLabel={cms?.heroCtaPrimaryLabel ?? "Get a Free Property Assessment"}
+        ctaPrimaryUrl={cms?.heroCtaPrimaryUrl ?? "/estimate"}
+        ctaSecondaryLabel={cms?.heroCtaSecondaryLabel ?? "See Completed Projects"}
+        ctaSecondaryUrl={cms?.heroCtaSecondaryUrl ?? "/projects"}
         microProof={[
           "No obligation, no pressure",
           "Response within 1 business day",

@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { getAllModels } from "@/data/aduModels";
 import { AduModelCard } from "@/components/public/cards/AduModelCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("adu-models");
   return buildMetadata({
-    title: "ADU Models — Floor Plans & Pricing",
+    title: cms?.seoTitle ?? "ADU Models — Floor Plans & Pricing",
     description:
+      cms?.seoDescription ??
       "Browse ADU Build LA's pre-designed ADU models for Los Angeles. Studio, 1-bedroom, and 2-bedroom floor plans starting from $95,000. Request a free estimate.",
-    canonical: "/adu-models",
+    canonical: cms?.canonicalUrl ?? "/adu-models",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 
-export default function AduModelsPage() {
+export default async function AduModelsPage() {
   const models = getAllModels();
 
   const whyModels = [

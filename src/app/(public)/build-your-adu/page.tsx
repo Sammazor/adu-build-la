@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { AduWizard } from "@/components/public/tools/AduWizard";
 import { CheckCircle2, ArrowRight, HelpCircle } from "lucide-react";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("build-your-adu");
   return buildMetadata({
-    title: "Build Your ADU — Free ADU Planner & Cost Estimator",
+    title: cms?.seoTitle ?? "Build Your ADU — Free ADU Planner & Cost Estimator",
     description:
+      cms?.seoDescription ??
       "Answer 9 quick questions and get a personalized ADU plan for your Los Angeles property — recommended ADU type, size range, budget estimate, and next steps. Free, no obligation.",
-    canonical: "/build-your-adu",
+    canonical: cms?.canonicalUrl ?? "/build-your-adu",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 

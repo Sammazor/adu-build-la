@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getPageOverride } from "@/lib/data/sitePageOverrides";
 import { getAllLocations } from "@/data/locations";
 import { LocationCard } from "@/components/public/cards/LocationCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight, MapPin } from "lucide-react";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getPageOverride("locations-index");
   return buildMetadata({
-    title: "ADU Services Across Los Angeles County",
+    title: cms?.seoTitle ?? "ADU Services Across Los Angeles County",
     description:
+      cms?.seoDescription ??
       "ADU Build LA serves homeowners throughout Los Angeles County. Find your city for local permitting guidance, pricing expectations, and a free property assessment.",
-    canonical: "/locations",
+    canonical: cms?.canonicalUrl ?? "/locations",
+    ogTitle: cms?.ogTitle ?? undefined,
+    ogDescription: cms?.ogDescription ?? undefined,
+    ogImageUrl: cms?.ogImageUrl ?? undefined,
+    noIndex: cms?.indexPage === false,
   });
 }
 
-export default function LocationsPage() {
+export default async function LocationsPage() {
   const locations = getAllLocations();
 
   const serviceAreas = [

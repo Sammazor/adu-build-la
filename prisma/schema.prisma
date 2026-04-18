@@ -344,6 +344,44 @@ model Page {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SITE PAGE OVERRIDES — CMS data for built-in hardcoded pages
+// pageKey is a fixed string like "homepage", "services-index", "locations-index"
+// All fields are optional; public pages fall back to hardcoded defaults if null.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SitePageOverride {
+  id      String @id @default(uuid())
+  pageKey String @unique @map("page_key") @db.VarChar(100)
+
+  // Hero
+  heroHeading           String? @map("hero_heading") @db.VarChar(255)
+  heroSubheading        String? @map("hero_subheading") @db.VarChar(500)
+  heroCtaPrimaryLabel   String? @map("hero_cta_primary_label") @db.VarChar(100)
+  heroCtaPrimaryUrl     String? @map("hero_cta_primary_url") @db.VarChar(500)
+  heroCtaSecondaryLabel String? @map("hero_cta_secondary_label") @db.VarChar(100)
+  heroCtaSecondaryUrl   String? @map("hero_cta_secondary_url") @db.VarChar(500)
+  heroImageUrl          String? @map("hero_image_url")
+
+  // Body sections (same JSON section array as Page model)
+  sections Json @default("[]")
+
+  // SEO
+  seoTitle       String?  @map("seo_title") @db.VarChar(70)
+  seoDescription String?  @map("seo_description") @db.VarChar(165)
+  canonicalUrl   String?  @map("canonical_url")
+  ogTitle        String?  @map("og_title")
+  ogDescription  String?  @map("og_description")
+  ogImageUrl     String?  @map("og_image_url")
+  indexPage      Boolean  @default(true) @map("index_page")
+  primaryKeyword String?  @map("primary_keyword")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("site_page_overrides")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LEAD SOURCES
 // ─────────────────────────────────────────────────────────────────────────────
 
