@@ -9,10 +9,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     // DB not available at build time
   }
 
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const dbUrl = settings?.siteUrl;
   const siteUrl =
-    settings?.siteUrl ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://adubuildla.com";
+    (envUrl && !envUrl.includes("localhost") ? envUrl : null) ??
+    (dbUrl && !dbUrl.includes("localhost") ? dbUrl : null) ??
+    "https://www.adubuildlosangeles.com";
 
   // If noindex is enabled in settings, disallow all crawling
   if (settings?.noindexSite) {
@@ -26,7 +28,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/login", "/_next/"],
+        disallow: ["/admin/", "/api/", "/login"],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
