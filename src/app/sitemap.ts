@@ -5,18 +5,27 @@ import { getAllModels } from "@/lib/data/aduModels";
 import { getAllProjects } from "@/lib/data/projects";
 import { getAllServiceLocationPages } from "@/lib/data/serviceLocationPages";
 
-const FALLBACK_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
+const CANONICAL_URL = "https://www.adubuildlosangeles.com";
+
+function resolveSiteUrl(dbValue: string | null | undefined): string {
+  // 1. Env var set on Vercel always wins
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (envUrl && !envUrl.includes("localhost")) return envUrl;
+  // 2. DB value — only trusted if it is a real production URL
+  if (dbValue && !dbValue.includes("localhost")) return dbValue;
+  // 3. Hard-coded canonical — final safety net
+  return CANONICAL_URL;
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let siteUrl = FALLBACK_URL;
+  let siteUrl = resolveSiteUrl(null);
   let services: { slug: string; updatedAt: Date }[] = [];
   let posts: { slug: string; updatedAt: Date; publishedAt: Date | null }[] = [];
   let cmsPages: { slug: string; updatedAt: Date }[] = [];
 
   try {
     const settings = await prisma.siteSettings.findFirst();
-    siteUrl = settings?.siteUrl ?? FALLBACK_URL;
+    siteUrl = resolveSiteUrl(settings?.siteUrl);
 
     services = await prisma.servicePage.findMany({
       where: { status: "published", indexPage: true },

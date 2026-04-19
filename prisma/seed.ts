@@ -56,12 +56,13 @@ async function main() {
   console.log(`✅ Default author: ${defaultAuthor.name}`);
 
   // ─── Site settings (singleton) ─────────────────────────────────────────────
+  const canonicalUrl = "https://www.adubuildlosangeles.com";
   const existingSettings = await prisma.siteSettings.findFirst();
   if (!existingSettings) {
     await prisma.siteSettings.create({
       data: {
         siteName: "ADU Build LA",
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com",
+        siteUrl: canonicalUrl,
         businessCity: "Los Angeles",
         businessState: "CA",
         priceRange: "$$$",
@@ -71,6 +72,13 @@ async function main() {
       },
     });
     console.log("✅ Site settings created");
+  } else if (existingSettings.siteUrl.includes("localhost")) {
+    // Correct a localhost value left over from local development seeding
+    await prisma.siteSettings.update({
+      where: { id: existingSettings.id },
+      data: { siteUrl: canonicalUrl },
+    });
+    console.log("✅ Site settings: corrected localhost siteUrl to canonical");
   } else {
     console.log("⏭  Site settings already exist, skipping");
   }
