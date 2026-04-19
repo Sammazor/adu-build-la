@@ -3,6 +3,10 @@ import { PrismaClient, ContentStatus } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
+import { getAllProjects } from "../src/data/projects";
+import { getAllLocations } from "../src/data/locations";
+import { getAllModels } from "../src/data/aduModels";
+import { getAllServiceLocationPages } from "../src/data/serviceLocationPages";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -1483,13 +1487,254 @@ The most common mistake is choosing a type based on what sounds good and then di
     // Posts with allowUpdate: true write new content on re-seed (for upgraded articles)
     const allowUpdate = "allowUpdate" in post && post.allowUpdate === true;
 
-    await prisma.post.upsert({
-      where: { slug: post.slug },
-      update: allowUpdate ? postData : {},
-      create: { ...postData, publishedAt: new Date() },
-    });
+    try {
+      await prisma.post.upsert({
+        where: { slug: post.slug },
+        update: allowUpdate ? postData : {},
+        create: { ...postData, publishedAt: new Date() },
+      });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(`⚠️  Skipping post "${post.slug}": ${msg.slice(0, 120)}`);
+    }
   }
   console.log(`✅ ${posts.length} blog posts seeded`);
+
+  // ─── Projects ──────────────────────────────────────────────────────────────
+  const projects = getAllProjects();
+  for (const p of projects) {
+    await prisma.project.upsert({
+      where: { slug: p.slug },
+      update: {
+        name: p.name,
+        fullPath: p.fullPath,
+        seoTitle: p.seoTitle,
+        seoDescription: p.seoDescription,
+        heroHeading: p.heroHeading,
+        heroTagline: p.heroTagline,
+        city: p.city,
+        projectType: p.projectType,
+        sqFt: p.sqFt,
+        beds: String(p.beds),
+        baths: p.baths,
+        completedYear: p.completedYear,
+        totalBuildWeeks: p.totalBuildWeeks,
+        totalProjectMonths: p.totalProjectMonths,
+        projectCost: p.projectCost,
+        monthlyRent: p.monthlyRent ?? null,
+        useCase: p.useCase,
+        challenge: p.challenge as object,
+        solution: p.solution as object,
+        result: p.result as object,
+        buildHighlights: p.buildHighlights as object[],
+        scopeItems: p.scopeItems as object[],
+        tags: p.tags as string[],
+        relatedLocationSlug: p.relatedLocationSlug ?? null,
+        relatedLocationName: p.relatedLocationName ?? null,
+        relatedModelSlug: p.relatedModelSlug ?? null,
+        relatedModelName: p.relatedModelName ?? null,
+        relatedServiceSlug: p.relatedServiceSlug ?? null,
+        relatedServiceName: p.relatedServiceName ?? null,
+        featuredOnHome: p.featuredOnHome ?? false,
+        featuredImageUrl: p.featuredImageUrl ?? null,
+        sortOrder: p.sortOrder ?? 0,
+      },
+      create: {
+        slug: p.slug,
+        name: p.name,
+        fullPath: p.fullPath,
+        seoTitle: p.seoTitle,
+        seoDescription: p.seoDescription,
+        heroHeading: p.heroHeading,
+        heroTagline: p.heroTagline,
+        city: p.city,
+        projectType: p.projectType,
+        sqFt: p.sqFt,
+        beds: String(p.beds),
+        baths: p.baths,
+        completedYear: p.completedYear,
+        totalBuildWeeks: p.totalBuildWeeks,
+        totalProjectMonths: p.totalProjectMonths,
+        projectCost: p.projectCost,
+        monthlyRent: p.monthlyRent ?? null,
+        useCase: p.useCase,
+        challenge: p.challenge as object,
+        solution: p.solution as object,
+        result: p.result as object,
+        buildHighlights: p.buildHighlights as object[],
+        scopeItems: p.scopeItems as object[],
+        tags: p.tags as string[],
+        relatedLocationSlug: p.relatedLocationSlug ?? null,
+        relatedLocationName: p.relatedLocationName ?? null,
+        relatedModelSlug: p.relatedModelSlug ?? null,
+        relatedModelName: p.relatedModelName ?? null,
+        relatedServiceSlug: p.relatedServiceSlug ?? null,
+        relatedServiceName: p.relatedServiceName ?? null,
+        featuredOnHome: p.featuredOnHome ?? false,
+        featuredImageUrl: p.featuredImageUrl ?? null,
+        sortOrder: p.sortOrder ?? 0,
+      },
+    });
+  }
+  console.log(`✅ ${projects.length} projects seeded`);
+
+  // ─── Locations ─────────────────────────────────────────────────────────────
+  const locations = getAllLocations();
+  for (const loc of locations) {
+    await prisma.location.upsert({
+      where: { slug: loc.slug },
+      update: {
+        name: loc.name,
+        county: loc.county,
+        fullPath: loc.fullPath,
+        seoTitle: loc.seoTitle,
+        seoDescription: loc.seoDescription,
+        heroTagline: loc.heroTagline,
+        heroHeading: loc.heroHeading,
+        heroSubheading: loc.heroSubheading,
+        introHeading: loc.introHeading,
+        introParagraphs: loc.introParagraphs,
+        stats: loc.stats as object[],
+        benefits: loc.benefits,
+        permitHeading: loc.permitHeading,
+        permitNotes: loc.permitNotes as object[],
+        pricingIntro: loc.pricingIntro,
+        pricingRanges: loc.pricingRanges as object[],
+        faqs: loc.faqs as object[],
+        nearbyAreas: loc.nearbyAreas,
+      },
+      create: {
+        slug: loc.slug,
+        name: loc.name,
+        county: loc.county,
+        fullPath: loc.fullPath,
+        seoTitle: loc.seoTitle,
+        seoDescription: loc.seoDescription,
+        heroTagline: loc.heroTagline,
+        heroHeading: loc.heroHeading,
+        heroSubheading: loc.heroSubheading,
+        introHeading: loc.introHeading,
+        introParagraphs: loc.introParagraphs,
+        stats: loc.stats as object[],
+        benefits: loc.benefits,
+        permitHeading: loc.permitHeading,
+        permitNotes: loc.permitNotes as object[],
+        pricingIntro: loc.pricingIntro,
+        pricingRanges: loc.pricingRanges as object[],
+        faqs: loc.faqs as object[],
+        nearbyAreas: loc.nearbyAreas,
+      },
+    });
+  }
+  console.log(`✅ ${locations.length} locations seeded`);
+
+  // ─── ADU Models ────────────────────────────────────────────────────────────
+  const aduModels = getAllModels();
+  for (const m of aduModels) {
+    await prisma.aduModel.upsert({
+      where: { slug: m.slug },
+      update: {
+        name: m.name,
+        tagline: m.tagline,
+        fullPath: m.fullPath,
+        modelType: m.modelType,
+        badge: m.badge ?? null,
+        seoTitle: m.seoTitle,
+        seoDescription: m.seoDescription,
+        heroHeading: m.heroHeading,
+        heroSubheading: m.heroSubheading,
+        specs: m.specs as object,
+        idealForHeading: m.idealForHeading,
+        idealForBody: m.idealForBody,
+        idealForItems: m.idealForItems,
+        featureGroups: m.featureGroups as object[],
+        startingFrom: m.startingFrom,
+        startingFromNote: m.startingFromNote,
+        faqs: m.faqs as object[],
+        tags: m.tags,
+      },
+      create: {
+        slug: m.slug,
+        name: m.name,
+        tagline: m.tagline,
+        fullPath: m.fullPath,
+        modelType: m.modelType,
+        badge: m.badge ?? null,
+        seoTitle: m.seoTitle,
+        seoDescription: m.seoDescription,
+        heroHeading: m.heroHeading,
+        heroSubheading: m.heroSubheading,
+        specs: m.specs as object,
+        idealForHeading: m.idealForHeading,
+        idealForBody: m.idealForBody,
+        idealForItems: m.idealForItems,
+        featureGroups: m.featureGroups as object[],
+        startingFrom: m.startingFrom,
+        startingFromNote: m.startingFromNote,
+        faqs: m.faqs as object[],
+        tags: m.tags,
+      },
+    });
+  }
+  console.log(`✅ ${aduModels.length} ADU models seeded`);
+
+  // ─── Service + Location pages ───────────────────────────────────────────────
+  const slPages = getAllServiceLocationPages();
+  for (const sl of slPages) {
+    await prisma.serviceLocationPage.upsert({
+      where: {
+        locationSlug_serviceSlug: {
+          locationSlug: sl.locationSlug,
+          serviceSlug: sl.serviceSlug,
+        },
+      },
+      update: {
+        locationName: sl.locationName,
+        serviceName: sl.serviceName,
+        fullPath: sl.fullPath,
+        seoTitle: sl.seoTitle,
+        seoDescription: sl.seoDescription,
+        heroTagline: sl.heroTagline,
+        heroHeading: sl.heroHeading,
+        heroSubheading: sl.heroSubheading,
+        whyHeading: sl.whyHeading,
+        whyParagraphs: sl.whyParagraphs,
+        considerationsHeading: sl.considerationsHeading,
+        considerations: sl.considerations as object[],
+        pricingHeading: sl.pricingHeading,
+        pricingIntro: sl.pricingIntro,
+        pricingRanges: sl.pricingRanges as object[],
+        faqs: sl.faqs as object[],
+        relatedLocationPath: sl.relatedLocationPath,
+        relatedServicePath: sl.relatedServicePath,
+        relatedPaths: (sl.relatedPaths ?? []) as object[],
+      },
+      create: {
+        locationSlug: sl.locationSlug,
+        serviceSlug: sl.serviceSlug,
+        locationName: sl.locationName,
+        serviceName: sl.serviceName,
+        fullPath: sl.fullPath,
+        seoTitle: sl.seoTitle,
+        seoDescription: sl.seoDescription,
+        heroTagline: sl.heroTagline,
+        heroHeading: sl.heroHeading,
+        heroSubheading: sl.heroSubheading,
+        whyHeading: sl.whyHeading,
+        whyParagraphs: sl.whyParagraphs,
+        considerationsHeading: sl.considerationsHeading,
+        considerations: sl.considerations as object[],
+        pricingHeading: sl.pricingHeading,
+        pricingIntro: sl.pricingIntro,
+        pricingRanges: sl.pricingRanges as object[],
+        faqs: sl.faqs as object[],
+        relatedLocationPath: sl.relatedLocationPath,
+        relatedServicePath: sl.relatedServicePath,
+        relatedPaths: (sl.relatedPaths ?? []) as object[],
+      },
+    });
+  }
+  console.log(`✅ ${slPages.length} service+location pages seeded`);
 
   console.log("\n🎉 Seed complete.");
   console.log(`\n📧 Admin login: ${adminEmail}`);

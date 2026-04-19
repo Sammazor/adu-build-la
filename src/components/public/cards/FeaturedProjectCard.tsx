@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, MapPin, DollarSign } from "lucide-react";
-import type { ProjectData } from "@/data/projects";
+import type { TypedProject } from "@/lib/data/projects";
 
 interface FeaturedProjectCardProps {
-  project: ProjectData;
+  project: TypedProject;
 }
 
 // Gradient placeholder colors per project type — used when no image is set

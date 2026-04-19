@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
-import type { ProjectData } from "@/data/projects";
+import type { TypedProject } from "@/lib/data/projects";
 
 interface ProjectCardProps {
-  project: ProjectData;
+  project: TypedProject;
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {

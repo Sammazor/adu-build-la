@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { getPageOverride } from "@/lib/data/sitePageOverrides";
-import { getAllModels } from "@/data/aduModels";
+import { getAllModels } from "@/lib/data/aduModels";
 import { AduModelCard } from "@/components/public/cards/AduModelCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight } from "lucide-react";
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AduModelsPage() {
-  const models = getAllModels();
+  const models = await getAllModels();
 
   const whyModels = [
     "Pre-designed floor plans are optimized for LA lot sizes and setback rules",

@@ -3,12 +3,14 @@
 import { useActionState, useState } from "react";
 import { upsertSitePage, type SitePageActionState } from "@/lib/actions/sitePages";
 import { SeoPanel } from "@/components/admin/seo/SeoPanel";
+import { MediaPickerField } from "@/components/admin/media/MediaPickerField";
 import {
   Loader2, CheckCircle2, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink, GripVertical,
 } from "lucide-react";
 import type { SitePageOverride } from "@/types/prisma-app";
+import type { SitePageDefaults } from "@/lib/data/sitePageDefaults";
 
-// ── Types (mirror PageForm) ───────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type SectionType = "rich_text" | "intro" | "cta" | "faq_list";
 interface RichTextSection { type: "rich_text"; content: string; }
@@ -42,36 +44,52 @@ function parseSections(raw: unknown): PageSection[] {
   );
 }
 
-// ── Field helpers (same as PageForm) ─────────────────────────────────────────
+// ── Field helpers ─────────────────────────────────────────────────────────────
 
 const inputCls =
   "w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent transition";
 
+/** Shows the live default value as a subtle label when no override is active */
+function DefaultBadge({ value }: { value?: string }) {
+  if (!value) return null;
+  return (
+    <span className="text-xs text-gray-400 font-normal ml-1.5">
+      (default: <span className="italic">{value.length > 60 ? value.slice(0, 60) + "…" : value}</span>)
+    </span>
+  );
+}
+
 function Field({
-  id, label, name, value, onChange, placeholder, note, error, rows, maxLength,
+  id, label, name, value, onChange, placeholder, note, error, rows, maxLength, defaultVal,
 }: {
   id: string; label: string; name?: string; value?: string;
   onChange?: (v: string) => void; placeholder?: string; note?: string;
-  error?: string; rows?: number; maxLength?: number;
+  error?: string; rows?: number; maxLength?: number; defaultVal?: string;
 }) {
+  const hasOverride = value !== undefined && value !== "";
   const border = error ? "border-red-400" : "border-gray-200";
   const cls = inputCls.replace("border-gray-200", border);
+  const effectivePlaceholder = placeholder || (defaultVal ? `Default: ${defaultVal}` : undefined);
+
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+        {!hasOverride && <DefaultBadge value={defaultVal} />}
+      </label>
       {note && <p className="text-xs text-gray-400 mb-1">{note}</p>}
       {rows ? (
         <textarea
           id={id} name={name} rows={rows} value={value}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          placeholder={placeholder} maxLength={maxLength}
+          placeholder={effectivePlaceholder} maxLength={maxLength}
           className={`${cls} resize-none`}
         />
       ) : (
         <input
           id={id} name={name} type="text" value={value}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          placeholder={placeholder} maxLength={maxLength}
+          placeholder={effectivePlaceholder} maxLength={maxLength}
           className={cls}
         />
       )}
@@ -218,15 +236,17 @@ interface SitePageFormProps {
   pageLabel: string;
   publicPath: string;
   override?: SitePageOverride | null;
+  defaults?: SitePageDefaults;
 }
 
-export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SitePageFormProps) {
+export function SitePageForm({ pageKey, pageLabel, publicPath, override, defaults = {} }: SitePageFormProps) {
   const [state, formAction, isPending] = useActionState(upsertSitePage, initialState);
 
   const [sections, setSections] = useState<PageSection[]>(() =>
     parseSections(override?.sections)
   );
 
+  // Effective values: use override if set, otherwise empty string (so placeholder shows default)
   const [heroHeading, setHeroHeading] = useState(override?.heroHeading ?? "");
   const [heroSubheading, setHeroSubheading] = useState(override?.heroSubheading ?? "");
   const [heroCtaPrimaryLabel, setHeroCtaPrimaryLabel] = useState(override?.heroCtaPrimaryLabel ?? "");
@@ -254,6 +274,12 @@ export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SiteP
     setSections((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // Determine if a field has an active override
+  const hasHeroOverride = !!(
+    override?.heroHeading || override?.heroSubheading ||
+    override?.heroCtaPrimaryLabel || override?.heroImageUrl
+  );
+
   const sectionsJson = JSON.stringify(sections);
 
   return (
@@ -273,11 +299,9 @@ export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SiteP
         {/* ── Main column ────────────────────────────────────────── */}
         <div className="space-y-6">
 
-          {/* Info */}
+          {/* Page info */}
           <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">
-              Page
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Page</h2>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-800">{pageLabel}</p>
@@ -288,53 +312,48 @@ export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SiteP
                 <ExternalLink className="w-3.5 h-3.5" /> View live
               </a>
             </div>
-            <p className="text-xs text-gray-400 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-              All fields are <strong>optional overrides</strong>. Leave a field blank to keep the hardcoded default.
-            </p>
+            <div className={`text-xs rounded-lg px-3 py-2 border ${hasHeroOverride ? "bg-amber-50 border-amber-100 text-amber-700" : "bg-gray-50 border-gray-100 text-gray-400"}`}>
+              {hasHeroOverride
+                ? "This page has active overrides. Fields left blank will fall back to the hardcoded defaults shown below."
+                : "No overrides saved yet — this page is showing its hardcoded defaults. Fill in any field to override it."}
+            </div>
           </section>
 
           {/* Hero */}
           <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">
               Hero Section
-              <span className="text-xs font-normal text-gray-400 ml-2">Override the page&apos;s hero content</span>
+              <span className="text-xs font-normal text-gray-400 ml-2">Leave blank to keep hardcoded default</span>
             </h2>
             <Field id="heroHeading" label="Heading" name="heroHeading"
               value={heroHeading} onChange={setHeroHeading}
-              placeholder="Leave blank to use default" />
+              defaultVal={defaults.heroHeading} />
             <Field id="heroSubheading" label="Subheading" name="heroSubheading"
               value={heroSubheading} onChange={setHeroSubheading}
-              placeholder="Leave blank to use default" rows={2} />
+              defaultVal={defaults.heroSubheading} rows={2} />
             <div className="grid grid-cols-2 gap-4">
               <Field id="heroCtaPrimaryLabel" label="Primary Button Label" name="heroCtaPrimaryLabel"
                 value={heroCtaPrimaryLabel} onChange={setHeroCtaPrimaryLabel}
-                placeholder="Get a Free Estimate" />
+                defaultVal={defaults.heroCtaPrimaryLabel} />
               <Field id="heroCtaPrimaryUrl" label="Primary Button URL" name="heroCtaPrimaryUrl"
                 value={heroCtaPrimaryUrl} onChange={setHeroCtaPrimaryUrl}
-                placeholder="/estimate" />
+                defaultVal={defaults.heroCtaPrimaryUrl} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field id="heroCtaSecondaryLabel" label="Secondary Button Label" name="heroCtaSecondaryLabel"
                 value={heroCtaSecondaryLabel} onChange={setHeroCtaSecondaryLabel}
-                placeholder="View Our Work (optional)" />
+                defaultVal={defaults.heroCtaSecondaryLabel} />
               <Field id="heroCtaSecondaryUrl" label="Secondary Button URL" name="heroCtaSecondaryUrl"
                 value={heroCtaSecondaryUrl} onChange={setHeroCtaSecondaryUrl}
-                placeholder="/projects" />
+                defaultVal={defaults.heroCtaSecondaryUrl} />
             </div>
-            <Field id="heroImageUrl" label="Hero Background Image URL" name="heroImageUrl"
-              value={heroImageUrl} onChange={setHeroImageUrl}
-              placeholder="https://… (paste from Media Library)"
-              note="Optional background image. Recommended: 1920×800px." />
-            {heroImageUrl && (
-              <div className="flex items-center gap-2 mt-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={heroImageUrl} alt="Hero preview" className="w-24 h-16 object-cover rounded-lg border border-gray-200" />
-                <a href={heroImageUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-stone-700">
-                  <ExternalLink className="w-3 h-3" /> Preview
-                </a>
-              </div>
-            )}
+            <MediaPickerField
+              label="Hero Background Image"
+              name="heroImageUrl"
+              value={heroImageUrl}
+              onChange={setHeroImageUrl}
+              note="Optional background image. Recommended: 1920×800px. Leave blank to use the page's default background."
+            />
           </section>
 
           {/* Sections */}
@@ -361,8 +380,8 @@ export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SiteP
           <SeoPanel
             slug={publicPath.replace(/^\//, "")}
             defaults={{
-              seoTitle: override?.seoTitle ?? undefined,
-              seoDescription: override?.seoDescription ?? undefined,
+              seoTitle: override?.seoTitle ?? defaults.seoTitle,
+              seoDescription: override?.seoDescription ?? defaults.seoDescription,
               canonicalUrl: override?.canonicalUrl ?? undefined,
               ogTitle: override?.ogTitle ?? undefined,
               ogDescription: override?.ogDescription ?? undefined,
@@ -389,7 +408,34 @@ export function SitePageForm({ pageKey, pageLabel, publicPath, override }: SiteP
             )}
           </div>
 
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
+          {/* Defaults reference card */}
+          {(defaults.heroHeading || defaults.seoTitle) && (
+            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Current Defaults</h3>
+              <dl className="space-y-2 text-xs text-gray-500">
+                {defaults.heroHeading && (
+                  <div>
+                    <dt className="font-medium text-gray-600">Hero Heading</dt>
+                    <dd className="text-gray-400 italic">{defaults.heroHeading}</dd>
+                  </div>
+                )}
+                {defaults.seoTitle && (
+                  <div>
+                    <dt className="font-medium text-gray-600">SEO Title</dt>
+                    <dd className="text-gray-400 italic">{defaults.seoTitle}</dd>
+                  </div>
+                )}
+                {defaults.heroCtaPrimaryLabel && (
+                  <div>
+                    <dt className="font-medium text-gray-600">Primary CTA</dt>
+                    <dd className="text-gray-400 italic">{defaults.heroCtaPrimaryLabel} → {defaults.heroCtaPrimaryUrl}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
+
+          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-2">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Section types</h3>
             <dl className="space-y-1.5 text-xs text-gray-500">
               <div><dt className="font-medium text-gray-700 inline">Rich Text</dt> — full Markdown support</div>

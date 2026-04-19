@@ -15,6 +15,10 @@ import {
   Globe,
   LayoutTemplate,
   Layers,
+  FolderOpen,
+  MapPin,
+  Home,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +31,10 @@ const navItems = [
   { href: "/admin/services", label: "Services", icon: Globe, exact: false },
   { href: "/admin/authors", label: "Authors", icon: UserCircle, exact: false },
   { href: "/admin/media", label: "Media Library", icon: ImageIcon, exact: false },
+  { href: "/admin/projects", label: "Projects", icon: FolderOpen, exact: false },
+  { href: "/admin/locations", label: "Locations", icon: MapPin, exact: false },
+  { href: "/admin/adu-models", label: "ADU Models", icon: Home, exact: false },
+  { href: "/admin/service-location-pages", label: "Service + City Pages", icon: GitBranch, exact: false },
   { href: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ];
 

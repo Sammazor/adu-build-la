@@ -17,7 +17,7 @@ import { RelatedLinksSection } from "@/components/public/sections/RelatedLinksSe
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { PostCard } from "@/components/public/cards/PostCard";
 import { formatDate } from "@/lib/utils/formatters";
-import { getAllLocations } from "@/data/locations";
+import { getAllLocations } from "@/lib/data/locations";
 import { CheckCircle2, Clock, ArrowRight, BookOpen, List } from "lucide-react";
 import { GENERAL_FAQS } from "@/data/faqs";
 import { extractTocItems } from "@/lib/utils/toc";
@@ -132,7 +132,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   );
 
   // ── Related links for cross-navigation ───────────────────────────────────
-  const locations = getAllLocations();
+  const locations = await getAllLocations();
   const relatedLinkItems = [
     ...services.map((s: PublishedService) => ({
       href: s.fullPath,
@@ -393,7 +393,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   City Guides
                 </div>
                 <ul className="space-y-2">
-                  {getAllLocations().map((loc) => (
+                  {locations.map((loc) => (
                     <li key={loc.slug}>
                       <Link
                         href={loc.fullPath}

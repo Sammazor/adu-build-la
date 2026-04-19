@@ -5,12 +5,12 @@ import { getPublishedServices, type PublishedService } from "@/lib/data/settings
 import { buildMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/schema/breadcrumb";
 import { buildFaqSchema } from "@/lib/schema/faq";
-import { getAllModelSlugs, getModelBySlug } from "@/data/aduModels";
+import { getAllModelSlugs, getModelBySlug } from "@/lib/data/aduModels";
 import { FaqSection } from "@/components/public/sections/FaqSection";
 import { ConfiguratorCta } from "@/components/public/sections/ConfiguratorCta";
 import { TrustSection } from "@/components/public/sections/TrustSection";
 import { RelatedLinksSection } from "@/components/public/sections/RelatedLinksSection";
-import { getProjectsByModel } from "@/data/projects";
+import { getProjectsByModel } from "@/lib/data/projects";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import {
@@ -29,13 +29,13 @@ interface ModelPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return getAllModelSlugs();
 }
 
 export async function generateMetadata({ params }: ModelPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const model = getModelBySlug(slug);
+  const model = await getModelBySlug(slug);
   if (!model) return {};
   return buildMetadata({
     title: model.seoTitle.replace(" | ADU Build LA", ""),
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: ModelPageProps): Promise<Meta
 
 export default async function AduModelDetailPage({ params }: ModelPageProps) {
   const { slug } = await params;
-  const model = getModelBySlug(slug);
+  const model = await getModelBySlug(slug);
   if (!model) notFound();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
@@ -68,7 +68,7 @@ export default async function AduModelDetailPage({ params }: ModelPageProps) {
   const bathsLabel = `${model.specs.baths} Bath`;
 
   // ── Related links for cross-navigation ───────────────────────────────────
-  const modelProjects = getProjectsByModel(model.slug);
+  const modelProjects = await getProjectsByModel(model.slug);
   const modelProjectItems = modelProjects.map((p) => ({
     href: p.fullPath,
     typeLabel: "Completed Project",

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
-import type { LocationData } from "@/data/locations";
+import type { TypedLocation } from "@/lib/data/locations";
 
 interface LocationCardProps {
-  location: LocationData;
+  location: TypedLocation;
 }
 
 export function LocationCard({ location }: LocationCardProps) {

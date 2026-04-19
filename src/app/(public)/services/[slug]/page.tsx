@@ -16,9 +16,9 @@ import { RelatedLinksSection } from "@/components/public/sections/RelatedLinksSe
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { SERVICE_FAQS } from "@/data/faqs";
-import { getAllLocations } from "@/data/locations";
-import { getModelsForService } from "@/data/aduModels";
-import { getProjectsByService } from "@/data/projects";
+import { getAllLocations } from "@/lib/data/locations";
+import { getModelsForService } from "@/lib/data/aduModels";
+import { getProjectsByService } from "@/lib/data/projects";
 import {
   CheckCircle2,
   ArrowLeft,
@@ -111,9 +111,9 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
   const ServiceIcon = (service.iconName && serviceIconMap[service.iconName]) || Home;
 
   // ── Related links for cross-navigation ───────────────────────────────────
-  const relatedLocations = getAllLocations();
-  const relatedModels = getModelsForService(slug, 3);
-  const relatedProjects = getProjectsByService(slug);
+  const relatedLocations = await getAllLocations();
+  const relatedModels = await getModelsForService(slug, 3);
+  const relatedProjects = await getProjectsByService(slug);
 
   const relatedLinkItems = [
     // City guides — always show all 5

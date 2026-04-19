@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { getPageOverride } from "@/lib/data/sitePageOverrides";
-import { getAllProjects } from "@/data/projects";
+import { getAllProjects } from "@/lib/data/projects";
 import { ProjectCard } from "@/components/public/cards/ProjectCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight, Star, Shield, Clock, Users } from "lucide-react";
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProjectsPage() {
-  const projects = getAllProjects();
+  const projects = await getAllProjects();
 
   const trustItems = [
     { Icon: Star, label: "4.9 / 5 Rating", sub: "Google Reviews" },

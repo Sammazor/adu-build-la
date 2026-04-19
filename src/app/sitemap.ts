@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-import { getAllLocations } from "@/data/locations";
-import { getAllModels } from "@/data/aduModels";
-import { getAllProjects } from "@/data/projects";
-import { getAllServiceLocationPages } from "@/data/serviceLocationPages";
+import { getAllLocations } from "@/lib/data/locations";
+import { getAllModels } from "@/lib/data/aduModels";
+import { getAllProjects } from "@/lib/data/projects";
+import { getAllServiceLocationPages } from "@/lib/data/serviceLocationPages";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
@@ -61,21 +61,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  const locationPages: MetadataRoute.Sitemap = getAllLocations().map((loc) => ({
+  const locationPages: MetadataRoute.Sitemap = (await getAllLocations()).map((loc) => ({
     url: `${siteUrl}${loc.fullPath}`,
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
 
-  const modelPages: MetadataRoute.Sitemap = getAllModels().map((m) => ({
+  const modelPages: MetadataRoute.Sitemap = (await getAllModels()).map((m) => ({
     url: `${siteUrl}${m.fullPath}`,
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
 
-  const projectPages: MetadataRoute.Sitemap = getAllProjects().map((p) => ({
+  const projectPages: MetadataRoute.Sitemap = (await getAllProjects()).map((p) => ({
     url: `${siteUrl}${p.fullPath}`,
     lastModified: now,
     changeFrequency: "monthly",
@@ -96,7 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const serviceLocationPages: MetadataRoute.Sitemap = getAllServiceLocationPages().map((p) => ({
+  const serviceLocationPages: MetadataRoute.Sitemap = (await getAllServiceLocationPages()).map((p) => ({
     url: `${siteUrl}${p.fullPath}`,
     lastModified: now,
     changeFrequency: "monthly",

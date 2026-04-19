@@ -5,6 +5,7 @@ import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { SitePageForm } from "@/components/admin/forms/SitePageForm";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { SITE_PAGES } from "@/lib/data/sitePagesList";
+import { SITE_PAGE_DEFAULTS } from "@/lib/data/sitePageDefaults";
 
 interface EditSitePageProps {
   params: Promise<{ key: string }>;
@@ -19,6 +20,8 @@ export default async function EditSitePageAdminPage({ params }: EditSitePageProp
   const override = await prisma.sitePageOverride
     .findUnique({ where: { pageKey: key } })
     .catch(() => null);
+
+  const defaults = SITE_PAGE_DEFAULTS[key] ?? {};
 
   return (
     <div>
@@ -51,6 +54,7 @@ export default async function EditSitePageAdminPage({ params }: EditSitePageProp
         pageLabel={pageDef.label}
         publicPath={pageDef.path}
         override={override}
+        defaults={defaults}
       />
     </div>
   );

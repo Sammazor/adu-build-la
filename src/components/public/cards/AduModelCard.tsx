@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Maximize2 } from "lucide-react";
-import type { AduModelData } from "@/data/aduModels";
+import type { TypedAduModel } from "@/lib/data/aduModels";
 
 interface AduModelCardProps {
-  model: AduModelData;
+  model: TypedAduModel;
 }
 
 export function AduModelCard({ model }: AduModelCardProps) {

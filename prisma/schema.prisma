@@ -382,6 +382,230 @@ model SitePageOverride {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PROJECT — portfolio case studies; migrated from src/data/projects.ts
+// JSON fields: scopeItems, buildHighlights, tags
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Project {
+  id       String @id @default(uuid())
+  slug     String @unique @db.VarChar(255)
+  name     String @db.VarChar(255)
+  fullPath String @map("full_path") @db.VarChar(500)
+
+  // SEO
+  seoTitle       String  @map("seo_title") @db.VarChar(120)
+  seoDescription String  @map("seo_description") @db.Text
+  canonicalUrl   String? @map("canonical_url") @db.VarChar(500)
+  ogImageUrl     String? @map("og_image_url")
+  indexPage      Boolean @default(true) @map("index_page")
+
+  // Hero
+  heroHeading String  @map("hero_heading") @db.VarChar(255)
+  heroTagline String  @map("hero_tagline") @db.Text
+
+  // Project summary
+  city               String  @db.VarChar(100)
+  projectType        String  @map("project_type") @db.VarChar(100)
+  sqFt               Int     @map("sq_ft")
+  beds               String  @db.VarChar(20)   // "1", "2", "Studio"
+  baths              Float
+  completedYear      Int     @map("completed_year")
+  totalBuildWeeks    Int     @map("total_build_weeks")
+  totalProjectMonths String  @map("total_project_months") @db.VarChar(50)
+  projectCost        String  @map("project_cost") @db.VarChar(50)
+  monthlyRent        String? @map("monthly_rent") @db.VarChar(50)
+  useCase            String  @map("use_case") @db.VarChar(255)
+
+  // Story (stored as JSON: {heading, body})
+  challenge Json
+  solution  Json
+  result    Json
+
+  // Arrays (stored as JSON)
+  buildHighlights Json @default("[]") @map("build_highlights")
+  scopeItems      Json @default("[]") @map("scope_items")
+  tags            Json @default("[]")
+
+  // Related content
+  relatedLocationSlug  String? @map("related_location_slug") @db.VarChar(100)
+  relatedLocationName  String? @map("related_location_name") @db.VarChar(100)
+  relatedModelSlug     String? @map("related_model_slug") @db.VarChar(100)
+  relatedModelName     String? @map("related_model_name") @db.VarChar(100)
+  relatedServiceSlug   String? @map("related_service_slug") @db.VarChar(100)
+  relatedServiceName   String? @map("related_service_name") @db.VarChar(100)
+
+  // Feature flags
+  featuredOnHome  Boolean @default(false) @map("featured_on_home")
+  featuredImageUrl String? @map("featured_image_url")
+
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([featuredOnHome, sortOrder])
+  @@index([slug])
+  @@map("projects")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCATION — city landing pages; migrated from src/data/locations.ts
+// JSON fields: stats, benefits, permitNotes, pricingRanges, faqs, nearbyAreas
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Location {
+  id       String @id @default(uuid())
+  slug     String @unique @db.VarChar(100)
+  name     String @db.VarChar(100)
+  county   String @db.VarChar(100)
+  fullPath String @map("full_path") @db.VarChar(255)
+
+  // SEO
+  seoTitle       String  @map("seo_title") @db.VarChar(120)
+  seoDescription String  @map("seo_description") @db.Text
+  canonicalUrl   String? @map("canonical_url") @db.VarChar(500)
+  ogImageUrl     String? @map("og_image_url")
+  indexPage      Boolean @default(true) @map("index_page")
+
+  // Hero
+  heroTagline    String @map("hero_tagline") @db.VarChar(255)
+  heroHeading    String @map("hero_heading") @db.VarChar(255)
+  heroSubheading String @map("hero_subheading") @db.Text
+  heroImageUrl   String? @map("hero_image_url")
+
+  // Intro
+  introHeading    String @map("intro_heading") @db.VarChar(255)
+  introParagraphs Json   @default("[]") @map("intro_paragraphs")
+
+  // Structured JSON arrays
+  stats         Json @default("[]")
+  benefits      Json @default("[]")
+  permitHeading String @map("permit_heading") @db.VarChar(255)
+  permitNotes   Json   @default("[]") @map("permit_notes")
+  pricingIntro  String @map("pricing_intro") @db.Text
+  pricingRanges Json   @default("[]") @map("pricing_ranges")
+  faqs          Json   @default("[]")
+  nearbyAreas   Json   @default("[]") @map("nearby_areas")
+
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  serviceLocationPages ServiceLocationPage[]
+
+  @@index([slug])
+  @@map("locations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADU MODEL — product catalog; migrated from src/data/aduModels.ts
+// JSON fields: specs, idealForItems, featureGroups, faqs, tags
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AduModel {
+  id        String @id @default(uuid())
+  slug      String @unique @db.VarChar(100)
+  name      String @db.VarChar(100)
+  tagline   String @db.Text
+  fullPath  String @map("full_path") @db.VarChar(255)
+  modelType String @map("model_type") @db.VarChar(50)  // "detached" | "garage-conversion"
+  badge     String? @db.VarChar(50)
+
+  // SEO
+  seoTitle       String  @map("seo_title") @db.VarChar(120)
+  seoDescription String  @map("seo_description") @db.Text
+  canonicalUrl   String? @map("canonical_url") @db.VarChar(500)
+  ogImageUrl     String? @map("og_image_url")
+  indexPage      Boolean @default(true) @map("index_page")
+
+  // Hero
+  heroHeading    String @map("hero_heading") @db.VarChar(255)
+  heroSubheading String @map("hero_subheading") @db.Text
+  heroImageUrl   String? @map("hero_image_url")
+
+  // Specs (JSON: {sqFt, beds, baths, floors, ceilingHeight})
+  specs Json
+
+  // Ideal for
+  idealForHeading String @map("ideal_for_heading") @db.VarChar(255)
+  idealForBody    String @map("ideal_for_body") @db.Text
+  idealForItems   Json   @default("[]") @map("ideal_for_items")
+
+  // Features (JSON array of {category, items[]})
+  featureGroups Json @default("[]") @map("feature_groups")
+
+  // Pricing
+  startingFrom     String @map("starting_from") @db.VarChar(50)
+  startingFromNote String @map("starting_from_note") @db.Text
+
+  // FAQs + tags (JSON arrays)
+  faqs Json @default("[]")
+  tags Json @default("[]")
+
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@map("adu_models")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SERVICE LOCATION PAGE — /locations/[city]/[service] combos
+// migrated from src/data/serviceLocationPages.ts
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ServiceLocationPage {
+  id           String @id @default(uuid())
+  locationSlug String @map("location_slug") @db.VarChar(100)
+  serviceSlug  String @map("service_slug") @db.VarChar(100)
+  locationName String @map("location_name") @db.VarChar(100)
+  serviceName  String @map("service_name") @db.VarChar(100)
+  fullPath     String @map("full_path") @db.VarChar(255)
+
+  // SEO
+  seoTitle       String  @map("seo_title") @db.VarChar(120)
+  seoDescription String  @map("seo_description") @db.Text
+  canonicalUrl   String? @map("canonical_url") @db.VarChar(500)
+  ogImageUrl     String? @map("og_image_url")
+  indexPage      Boolean @default(true) @map("index_page")
+
+  // Hero
+  heroTagline    String @map("hero_tagline") @db.VarChar(255)
+  heroHeading    String @map("hero_heading") @db.VarChar(255)
+  heroSubheading String @map("hero_subheading") @db.Text
+
+  // Why section
+  whyHeading    String @map("why_heading") @db.VarChar(255)
+  whyParagraphs Json   @default("[]") @map("why_paragraphs")
+
+  // Considerations (JSON: [{title, body}])
+  considerationsHeading String @map("considerations_heading") @db.VarChar(255)
+  considerations        Json   @default("[]")
+
+  // Pricing
+  pricingHeading String @map("pricing_heading") @db.VarChar(255)
+  pricingIntro   String @map("pricing_intro") @db.Text
+  pricingRanges  Json   @default("[]") @map("pricing_ranges")
+
+  // FAQs
+  faqs Json @default("[]")
+
+  // Related links
+  relatedLocationPath String  @map("related_location_path") @db.VarChar(255)
+  relatedServicePath  String  @map("related_service_path") @db.VarChar(255)
+  relatedPaths        Json    @default("[]") @map("related_paths")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  location Location? @relation(fields: [locationSlug], references: [slug])
+
+  @@unique([locationSlug, serviceSlug])
+  @@index([locationSlug])
+  @@map("service_location_pages")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LEAD SOURCES
 // ─────────────────────────────────────────────────────────────────────────────
 

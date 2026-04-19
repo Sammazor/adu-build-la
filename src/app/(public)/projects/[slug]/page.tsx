@@ -5,13 +5,13 @@ import { getPublishedServices, type PublishedService } from "@/lib/data/settings
 import { buildMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/schema/breadcrumb";
 import { buildFaqSchema } from "@/lib/schema/faq";
-import { getAllProjectSlugs, getProjectBySlug, getOtherProjects } from "@/data/projects";
+import { getAllProjectSlugs, getProjectBySlug, getOtherProjects } from "@/lib/data/projects";
 import { FaqSection } from "@/components/public/sections/FaqSection";
 import { ConfiguratorCta } from "@/components/public/sections/ConfiguratorCta";
 import { TrustSection } from "@/components/public/sections/TrustSection";
 import { RelatedLinksSection } from "@/components/public/sections/RelatedLinksSection";
-import { getLocationBySlug } from "@/data/locations";
-import { getModelBySlug } from "@/data/aduModels";
+import { getLocationBySlug } from "@/lib/data/locations";
+import { getModelBySlug } from "@/lib/data/aduModels";
 import { ServiceCard } from "@/components/public/cards/ServiceCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { GENERAL_FAQS } from "@/data/faqs";
@@ -34,13 +34,13 @@ interface ProjectPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return getAllProjectSlugs();
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
   if (!project) return {};
   return buildMetadata({
     title: project.seoTitle.replace(" | ADU Build LA", ""),
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
   if (!project) notFound();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
@@ -74,12 +74,12 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   // ── Related links for cross-navigation ───────────────────────────────────
   const relatedLocation = project.relatedLocationSlug
-    ? getLocationBySlug(project.relatedLocationSlug)
+    ? await getLocationBySlug(project.relatedLocationSlug)
     : undefined;
   const relatedModel = project.relatedModelSlug
-    ? getModelBySlug(project.relatedModelSlug)
+    ? await getModelBySlug(project.relatedModelSlug)
     : undefined;
-  const otherProjects = getOtherProjects(project.slug, 2);
+  const otherProjects = await getOtherProjects(project.slug, 2);
 
   const exploreItems = [
     ...(relatedLocation

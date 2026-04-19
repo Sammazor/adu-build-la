@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { getPageOverride } from "@/lib/data/sitePageOverrides";
-import { getAllLocations } from "@/data/locations";
+import { getAllLocations } from "@/lib/data/locations";
 import { LocationCard } from "@/components/public/cards/LocationCard";
 import { LeadForm } from "@/components/public/forms/LeadForm";
 import { CheckCircle2, ArrowRight, MapPin } from "lucide-react";
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LocationsPage() {
-  const locations = getAllLocations();
+  const locations = await getAllLocations();
 
   const serviceAreas = [
     "Los Angeles",

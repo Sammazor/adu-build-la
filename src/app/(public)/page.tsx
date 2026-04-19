@@ -14,7 +14,7 @@ import { ServedAreasSection } from "@/components/public/sections/ServedAreasSect
 import { FeaturedProjectCard } from "@/components/public/cards/FeaturedProjectCard";
 import { ConfiguratorCta } from "@/components/public/sections/ConfiguratorCta";
 import { GENERAL_FAQS } from "@/data/faqs";
-import { getFeaturedProjects } from "@/data/projects";
+import { getFeaturedProjects } from "@/lib/data/projects";
 import {
   CheckCircle2,
   Star,
@@ -53,7 +53,7 @@ export default async function HomePage() {
     getPageOverride("homepage"),
   ]);
 
-  const featuredProjects = getFeaturedProjects(3);
+  const featuredProjects = await getFeaturedProjects(3);
 
   const trustItems = [
     { Icon: Shield, label: "Licensed & Insured", sub: "CA General Contractor (B)" },

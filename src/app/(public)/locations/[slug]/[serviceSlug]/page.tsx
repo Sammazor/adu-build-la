@@ -7,8 +7,8 @@ import { buildFaqSchema } from "@/lib/schema/faq";
 import {
   getServiceLocationPage,
   getAllServiceLocationParams,
-} from "@/data/serviceLocationPages";
-import { getLocationBySlug } from "@/data/locations";
+} from "@/lib/data/serviceLocationPages";
+import { getLocationBySlug } from "@/lib/data/locations";
 import { FaqSection } from "@/components/public/sections/FaqSection";
 import { TrustSection } from "@/components/public/sections/TrustSection";
 import { LeadForm } from "@/components/public/forms/LeadForm";
@@ -20,8 +20,9 @@ interface ServiceLocationPageProps {
   params: Promise<{ slug: string; serviceSlug: string }>;
 }
 
-export function generateStaticParams() {
-  return getAllServiceLocationParams().map((p) => ({
+export async function generateStaticParams() {
+  const params = await getAllServiceLocationParams();
+  return params.map((p) => ({
     slug: p.locationSlug,
     serviceSlug: p.serviceSlug,
   }));
@@ -29,7 +30,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: ServiceLocationPageProps): Promise<Metadata> {
   const { slug, serviceSlug } = await params;
-  const page = getServiceLocationPage(slug, serviceSlug);
+  const page = await getServiceLocationPage(slug, serviceSlug);
   if (!page) return {};
   return buildMetadata({
     title: page.seoTitle.replace(" | ADU Build LA", ""),
@@ -40,10 +41,10 @@ export async function generateMetadata({ params }: ServiceLocationPageProps): Pr
 
 export default async function ServiceLocationPage({ params }: ServiceLocationPageProps) {
   const { slug, serviceSlug } = await params;
-  const page = getServiceLocationPage(slug, serviceSlug);
+  const page = await getServiceLocationPage(slug, serviceSlug);
   if (!page) notFound();
 
-  const location = getLocationBySlug(slug);
+  const location = await getLocationBySlug(slug);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adubuildla.com";
 
